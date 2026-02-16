@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Todo App</title>
+</head>
+<body>
+  <h2>Todo App</h2>
+
+  <input id="todoInput" placeholder="Nhập công việc..." />
+  <button onclick="addTodo()">Thêm</button>
+
+  <ul id="todoList"></ul>
+
+  <script>
+    const API = "http://localhost:3000/todos";
+
+    async function loadTodos() {
+      const res = await fetch(API);
+      const todos = await res.json();
+
+      const list = document.getElementById("todoList");
+      list.innerHTML = "";
+
+      todos.forEach(todo => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span style="text-decoration:${todo.done ? 'line-through' : 'none'}">
+            ${todo.text}
+          </span>
+          <button onclick="toggleDone(${todo.id})">Done</button>
+          <button onclick="deleteTodo(${todo.id})">Xóa</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function addTodo() {
+      const text = document.getElementById("todoInput").value;
+      if (!text) return;
+
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      document.getElementById("todoInput").value = "";
+      loadTodos();
+    }
+
+    async function deleteTodo(id) {
+      await fetch(`${API}/${id}`, { method: "DELETE" });
+      loadTodos();
+    }
+
+    async function toggleDone(id) {
+      await fetch(`${API}/${id}`, { method: "PUT" });
+      loadTodos();
+    }
+
+    loadTodos();
+  </script>
+</body>
+</html>
